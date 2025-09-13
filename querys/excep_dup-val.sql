@@ -1,13 +1,12 @@
 SET SERVEROUTPUT ON;
 
--- TODO: Ajustar el codigo para que funcione con los datos de la version nueva.
-
 DECLARE
-    v_rut_estudiante NUMBER := 21689802; -- Estudiante sin proyecto.
-    v_id_proyecto    NUMBER := 147;      -- Proyecto ya asignado.
+    
+    v_rut_estudiante NUMBER := 18307969; 
+    v_id_proyecto    NUMBER := 147;      
 
 BEGIN
-    -- Intenta asignar un proyecto que ya está ocupado.
+    -- Intentamos asignar el proyecto al estudiante.
     UPDATE ESTUDIANTE
     SET id_proyecto = v_id_proyecto
     WHERE numrun = v_rut_estudiante;
@@ -16,7 +15,7 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Proyecto asignado correctamente.');
 
 EXCEPTION
-    -- Captura la excepción de valor duplicado en un índice único.
+    -- Aqui se captura la excepción.
     WHEN DUP_VAL_ON_INDEX THEN
         ROLLBACK;
         DBMS_OUTPUT.PUT_LINE('Error: El proyecto ' || v_id_proyecto || ' ya está asignado a otro estudiante.');
