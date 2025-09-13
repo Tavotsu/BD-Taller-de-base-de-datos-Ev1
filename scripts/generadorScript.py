@@ -37,8 +37,8 @@ NOMBRES_EVENTOS = [
 LUGARES_EVENTOS = ["Auditorio Principal", "Sala CatchAI", "Laboratorio de Redes", "Sala de Conferencias B", "Patio Central"]
 
 # --- CONFIGURACIÓN DE GENERACIÓN ---
-NUM_ESTUDIANTES = 200
-NUM_PROYECTOS = 80
+NUM_ESTUDIANTES = 140
+NUM_PROYECTOS = 50
 NUM_EVENTOS = 15
 RUT_MIN = 18000000
 RUT_MAX = 22000000
@@ -57,6 +57,7 @@ def calcular_dv(rut_sin_dv):
     return str(dv)
 
 # --- FUNCIÓN PRINCIPAL DE GENERACIÓN ---
+# --- FUNCIÓN PRINCIPAL DE GENERACIÓN (MODIFICADA) ---
 def generar_sql_oracle():
     ruts_usados = set()
     
@@ -102,22 +103,46 @@ def generar_sql_oracle():
         # --- 3. Poblado de la tabla PROYECTO ---
         print(f"Generando {NUM_PROYECTOS} proyectos...")
         f.write(f"\n-- 3. Poblado de la tabla PROYECTO\n")
-        proyectos_generados_ids = []
+        
+        # NUEVO: Diccionario para agrupar proyectos por su track.
+        proyectos_por_track = {track['id']: [] for track in tracks_generados}
+        
         for i in range(NUM_PROYECTOS):
             track_asignado = random.choice(tracks_generados)
             nombre_proyecto = f"{random.choice(PLANTILLAS_PROYECTOS[track_asignado['nombre']])} v{random.randint(1,5)}"
             id_proyecto = 101 + i
-            proyectos_generados_ids.append(id_proyecto)
+            
+            # NUEVO: Guardamos el proyecto en la lista de su track correspondiente.
+            proyectos_por_track[track_asignado['id']].append(id_proyecto)
+            
             nombre_proyecto_sql = nombre_proyecto.replace("'", "''")
             f.write(f"INSERT INTO PROYECTO (id_proyecto, nombre, descripcion, id_track) VALUES ({id_proyecto}, '{nombre_proyecto_sql}', 'Descripción del proyecto.', {track_asignado['id']});\n")
 
         # --- 4. Poblado de la tabla ESTUDIANTE ---
         print(f"Generando {NUM_ESTUDIANTES} estudiantes...")
         f.write(f"\n-- 4. Poblado de la tabla ESTUDIANTE\n")
-        proyectos_disponibles = list(proyectos_generados_ids)
-        random.shuffle(proyectos_disponibles)
-        estudiantes_generados_ruts = []
 
+        # NUEVO: Lógica para garantizar 3 estudiantes por track.
+        asignaciones_obligatorias = []
+        proyectos_ya_seleccionados = set()
+        
+        for track_id in proyectos_por_track:
+            # Tomamos hasta 3 proyectos de cada track que no hayan sido ya seleccionados.
+            proyectos_disponibles_en_track = [p for p in proyectos_por_track[track_id] if p not in proyectos_ya_seleccionados]
+            random.shuffle(proyectos_disponibles_en_track)
+            
+            # Seleccionamos 3 para la asignación obligatoria
+            for i in range(min(3, len(proyectos_disponibles_en_track))):
+                proyecto = proyectos_disponibles_en_track[i]
+                asignaciones_obligatorias.append(proyecto)
+                proyectos_ya_seleccionados.add(proyecto)
+
+        # NUEVO: Creamos la lista de proyectos restantes para asignación aleatoria.
+        todos_los_proyectos = [p for lista in proyectos_por_track.values() for p in lista]
+        proyectos_disponibles = [p for p in todos_los_proyectos if p not in proyectos_ya_seleccionados]
+        random.shuffle(proyectos_disponibles)
+        
+        estudiantes_generados_ruts = []
         for i in range(NUM_ESTUDIANTES):
             while True:
                 numrun = random.randint(RUT_MIN, RUT_MAX)
@@ -136,7 +161,11 @@ def generar_sql_oracle():
             fec_nac = datetime.now() - timedelta(days=random.randint(18*365, 30*365))
             
             id_proyecto_asignado = 'NULL'
-            if proyectos_disponibles and random.random() < 0.7:
+            # NUEVO: Asignamos primero de la lista obligatoria.
+            if asignaciones_obligatorias:
+                id_proyecto_asignado = asignaciones_obligatorias.pop(0)
+            # NUEVO: Si ya se cumplió el mínimo, asignamos de los restantes con probabilidad.
+            elif proyectos_disponibles and random.random() < 0.7:
                 id_proyecto_asignado = proyectos_disponibles.pop()
 
             f.write(f"INSERT INTO ESTUDIANTE (numrun, dv_run, pnombre, snombre, papellido, mapellido, fec_nac, id_genero, id_proyecto) VALUES ({numrun}, '{dv_run}', '{pnombre}', '{snombre}', '{papellido}', '{mapellido}', TO_DATE('{fec_nac.strftime('%Y-%m-%d')}', 'YYYY-MM-DD'), {id_genero}, {id_proyecto_asignado});\n")

@@ -1,1 +1,1 @@
-select * from ESTUDIANTE;
+select * from PROYECTO;

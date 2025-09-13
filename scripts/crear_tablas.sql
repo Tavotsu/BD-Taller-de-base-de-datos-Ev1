@@ -47,6 +47,14 @@ CREATE TABLE EVENTO (
     hora_fin    VARCHAR2(5)  -- Formato HH24:MI
 );
 
+CREATE TABLE LOG_ASIGNACIONES (
+    id_log       NUMBER GENERATED ALWAYS AS IDENTITY,
+    rut_estudiante NUMBER,
+    id_proyecto  NUMBER,
+    fecha_asig   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(id_log)
+);
+
 -- TABLA INTERMEDIA: EVENTO <-> PROFESOR
 CREATE TABLE EVENTO_PROFESOR (
     id_evento     NUMBER,
