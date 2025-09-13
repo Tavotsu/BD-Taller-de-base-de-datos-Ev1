@@ -22,81 +22,63 @@ PROFESORES = [
     ('Juan', 'Pérez'), ('Ana', 'García'), ('Carlos', 'López'),
     ('María', 'Martínez'), ('Luis', 'Hernández'), ('Elena', 'Gómez')
 ]
-
-# Plantillas de proyectos por cada Track
 PLANTILLAS_PROYECTOS = {
-    'Track de Robótica': [
-        'Brazo Robótico Autónomo con Visión Artificial', 'Robot Seguidor de Línea para Competición', 'Sistema de Navegación para Drones de Interior',
-        'Robot de Exploración Planetaria a Escala'
-    ],
-    'Track de Programación Competitiva': [
-        'Plataforma de Juez en Línea para Algoritmos', 'Visualizador de Estructuras de Datos Complejas', 'Framework para Pruebas de Estrés en Problemas de Competencia',
-        'Repositorio de Soluciones Optimizadas'
-    ],
-    'Track de Inteligencia Artificial': [
-        'Modelo de Detección de Emociones en Texto', 'Sistema de Recomendación de Contenidos Educativos', 'Red Neuronal para Clasificación de Imágenes Médicas',
-        'Chatbot Asistente para Estudiantes de DUOC'
-    ],
-    'Track de Ciberseguridad': [
-        'Herramienta de Análisis de Vulnerabilidades Web', 'Sistema de Detección de Intrusiones basado en Anomalías', 'Framework para Simulación de Ataques de Phishing',
-        'Analizador de Malware en Entornos Aislados (Sandbox)'
-    ],
-    'Track de Desarrollo de Videojuegos': [
-        'Juego de Estrategia en Tiempo Real con Motor Gráfico Propio', 'RPG 2D con Narrativa Interactiva', 'Videojuego Educativo sobre Historia de Chile',
-        'Juego de Puzzles basado en Físicas para Móviles'
-    ],
-    'Track de Desarrollo Web y Móvil': [
-        'Aplicación Móvil para la Gestión de Proyectos CITT', 'Plataforma Web de Intercambio de Habilidades entre Estudiantes', 'Marketplace de Proyectos Freelance para la Comunidad DUOC',
-        'App de Realidad Aumentada para el Campus'
-    ]
+    'Track de Robótica': ['Brazo Robótico Autónomo', 'Robot Seguidor de Línea', 'Sistema de Navegación para Drones'],
+    'Track de Programación Competitiva': ['Plataforma de Juez en Línea', 'Visualizador de Algoritmos', 'Framework para Pruebas de Estrés'],
+    'Track de Inteligencia Artificial': ['Modelo de Detección de Emociones', 'Sistema de Recomendación Educativo', 'Chatbot Asistente DUOC'],
+    'Track de Ciberseguridad': ['Herramienta de Análisis de Vulnerabilidades', 'Sistema de Detección de Intrusiones', 'Framework de Simulación de Phishing'],
+    'Track de Desarrollo de Videojuegos': ['Juego de Estrategia en Tiempo Real', 'RPG 2D con Narrativa Interactiva', 'Juego Educativo sobre Historia'],
+    'Track de Desarrollo Web y Móvil': ['App para la Gestión de Proyectos CITT', 'Plataforma Web de Intercambio de Habilidades', 'Marketplace de Proyectos Freelance']
 }
+NOMBRES_EVENTOS = [
+    "Charla Introductoria a la IA Generativa", "Taller de Ethical Hacking", "Competencia de Programación 'CodeMasters'",
+    "Seminario de Desarrollo con Unity", "Workshop de Robótica con Arduino", "Presentación de Proyectos de Ciberseguridad"
+]
+LUGARES_EVENTOS = ["Auditorio Principal", "Sala CatchAI", "Laboratorio de Redes", "Sala de Conferencias B", "Patio Central"]
 
 # --- CONFIGURACIÓN DE GENERACIÓN ---
 NUM_ESTUDIANTES = 200
 NUM_PROYECTOS = 80
+NUM_EVENTOS = 15
 RUT_MIN = 18000000
 RUT_MAX = 22000000
 
 # --- FUNCIÓN AUXILIAR ---
 def calcular_dv(rut_sin_dv):
-    """Calcula el dígito verificador de un RUT chileno."""
     rut_reverso = str(rut_sin_dv)[::-1]
-    multiplicador = 2
-    suma = 0
+    multiplicador, suma = 2, 0
     for digito in rut_reverso:
         suma += int(digito) * multiplicador
-        multiplicador += 1
-        if multiplicador == 8:
-            multiplicador = 2
+        multiplicador = 2 if multiplicador == 7 else multiplicador + 1
     resto = suma % 11
     dv = 11 - resto
     if dv == 11: return '0'
-    elif dv == 10: return 'K'
-    else: return str(dv)
+    if dv == 10: return 'K'
+    return str(dv)
 
 # --- FUNCIÓN PRINCIPAL DE GENERACIÓN ---
 def generar_sql_oracle():
-    """Genera el archivo .sql para poblar la base de datos Oracle."""
     ruts_usados = set()
     
-    with open('poblar_citt_oracle.sql', 'w', encoding='utf-8') as f:
-        print("Iniciando la generación del archivo poblar_citt_oracle.sql...")
-        f.write("-- Script de Poblado para Base de Datos CITT DUOC UC (Oracle)\n\n")
+    with open('poblar_citt_oracle_v2.sql', 'w', encoding='utf-8') as f:
+        print("Iniciando la generación del archivo poblar_citt_oracle_v2.sql...")
+        f.write("-- Script de Poblado v2 para Base de Datos CITT DUOC UC (Oracle)\n\n")
         
         # --- Limpieza de Tablas y Reinicio de Secuencias ---
         f.write("-- Limpieza de tablas en orden de dependencia inversa\n")
+        f.write("DELETE FROM EVENTO_ESTUDIANTE;\n")
+        f.write("DELETE FROM EVENTO_PROFESOR;\n")
+        f.write("DELETE FROM EVENTO;\n")
         f.write("DELETE FROM ESTUDIANTE;\n")
         f.write("DELETE FROM PROYECTO;\n")
         f.write("DELETE FROM TRACK;\n")
         f.write("DELETE FROM PROFESOR;\n\n")
         
-        f.write("-- Reinicio de secuencias (si es necesario)\n")
-        f.write("DROP SEQUENCE SEQ_PROFESOR;\n")
-        f.write("CREATE SEQUENCE SEQ_PROFESOR START WITH 1 INCREMENT BY 1;\n")
-        f.write("DROP SEQUENCE SEQ_TRACK;\n")
-        f.write("CREATE SEQUENCE SEQ_TRACK START WITH 1 INCREMENT BY 1;\n")
-        f.write("DROP SEQUENCE SEQ_PROYECTO;\n")
-        f.write("CREATE SEQUENCE SEQ_PROYECTO START WITH 101 INCREMENT BY 1;\n\n")
+        f.write("-- Reinicio de secuencias\n")
+        f.write("DROP SEQUENCE SEQ_PROFESOR;\nCREATE SEQUENCE SEQ_PROFESOR START WITH 1 INCREMENT BY 1;\n")
+        f.write("DROP SEQUENCE SEQ_TRACK;\nCREATE SEQUENCE SEQ_TRACK START WITH 1 INCREMENT BY 1;\n")
+        f.write("DROP SEQUENCE SEQ_PROYECTO;\nCREATE SEQUENCE SEQ_PROYECTO START WITH 101 INCREMENT BY 1;\n")
+        f.write("DROP SEQUENCE SEQ_EVENTO;\nCREATE SEQUENCE SEQ_EVENTO START WITH 1 INCREMENT BY 1;\n\n")
 
         # --- 1. Poblado de la tabla PROFESOR ---
         print("Generando 6 profesores...")
@@ -106,19 +88,16 @@ def generar_sql_oracle():
             while True:
                 numrun = random.randint(10000000, 15000000)
                 if numrun not in ruts_usados:
-                    ruts_usados.add(numrun)
-                    break
-            profesores_generados.append({'id': i + 1, 'pnombre': prof[0], 'papellido': prof[1]})
+                    ruts_usados.add(numrun); break
+            profesores_generados.append({'id': i + 1, 'pnombre': prof[0]})
             f.write(f"INSERT INTO PROFESOR (id_profesor, pnombre, papellido, rut) VALUES (SEQ_PROFESOR.NEXTVAL, '{prof[0]}', '{prof[1]}', {numrun});\n")
         
         # --- 2. Poblado de la tabla TRACK ---
-        print("Generando 6 tracks y asignando profesores...")
+        print("Generando 6 tracks...")
         f.write("\n-- 2. Poblado de la tabla TRACK\n")
-        tracks_generados = []
-        for i, track_nombre in enumerate(TRACKS):
-            id_profesor_asignado = profesores_generados[i]['id']
-            tracks_generados.append({'id': i + 1, 'nombre': track_nombre})
-            f.write(f"INSERT INTO TRACK (id_track, nombre, id_profesor) VALUES (SEQ_TRACK.NEXTVAL, '{track_nombre}', {id_profesor_asignado});\n")
+        tracks_generados = [{'id': i + 1, 'nombre': nombre} for i, nombre in enumerate(TRACKS)]
+        for i, track in enumerate(tracks_generados):
+            f.write(f"INSERT INTO TRACK (id_track, nombre, id_profesor) VALUES (SEQ_TRACK.NEXTVAL, '{track['nombre']}', {profesores_generados[i]['id']});\n")
 
         # --- 3. Poblado de la tabla PROYECTO ---
         print(f"Generando {NUM_PROYECTOS} proyectos...")
@@ -126,57 +105,75 @@ def generar_sql_oracle():
         proyectos_generados_ids = []
         for i in range(NUM_PROYECTOS):
             track_asignado = random.choice(tracks_generados)
-            nombre_proyecto = random.choice(PLANTILLAS_PROYECTOS[track_asignado['nombre']])
-            # Evitar duplicados de nombres de proyecto
-            nombre_proyecto_unico = f"{nombre_proyecto} v{random.randint(1,5)}"
-            descripcion = f"Descripción detallada del proyecto {nombre_proyecto_unico}."
+            nombre_proyecto = f"{random.choice(PLANTILLAS_PROYECTOS[track_asignado['nombre']])} v{random.randint(1,5)}"
             id_proyecto = 101 + i
             proyectos_generados_ids.append(id_proyecto)
-            nombre_proyecto_sql = nombre_proyecto_unico.replace("'", "''")
-            f.write(f"INSERT INTO PROYECTO (id_proyecto, nombre, descripcion, id_track) VALUES ({id_proyecto}, '{nombre_proyecto_sql}', '{descripcion}', {track_asignado['id']});\n")
+            nombre_proyecto_sql = nombre_proyecto.replace("'", "''")
+            f.write(f"INSERT INTO PROYECTO (id_proyecto, nombre, descripcion, id_track) VALUES ({id_proyecto}, '{nombre_proyecto_sql}', 'Descripción del proyecto.', {track_asignado['id']});\n")
 
         # --- 4. Poblado de la tabla ESTUDIANTE ---
         print(f"Generando {NUM_ESTUDIANTES} estudiantes...")
         f.write(f"\n-- 4. Poblado de la tabla ESTUDIANTE\n")
-        proyectos_disponibles = list(proyectos_generados_ids) # Copia para poder eliminar ids
+        proyectos_disponibles = list(proyectos_generados_ids)
         random.shuffle(proyectos_disponibles)
+        estudiantes_generados_ruts = []
 
         for i in range(NUM_ESTUDIANTES):
             while True:
                 numrun = random.randint(RUT_MIN, RUT_MAX)
                 if numrun not in ruts_usados:
-                    ruts_usados.add(numrun)
-                    break
+                    ruts_usados.add(numrun); break
             
+            estudiantes_generados_ruts.append(numrun)
             dv_run = calcular_dv(numrun)
             
-            # Proporción 80% hombres, 20% mujeres
             if random.random() < 0.80:
-                id_genero = 2 # Masculino
-                pnombre = random.choice(NOMBRES_MASCULINOS)
-                snombre = random.choice(NOMBRES_MASCULINOS)
+                id_genero, pnombre, snombre = 2, random.choice(NOMBRES_MASCULINOS), random.choice(NOMBRES_MASCULINOS)
             else:
-                id_genero = 1 # Femenino
-                pnombre = random.choice(NOMBRES_FEMENINOS)
-                snombre = random.choice(NOMBRES_FEMENINOS)
-
-            papellido = random.choice(APELLIDOS)
-            mapellido = random.choice(APELLIDOS)
+                id_genero, pnombre, snombre = 1, random.choice(NOMBRES_FEMENINOS), random.choice(NOMBRES_FEMENINOS)
+            
+            papellido, mapellido = random.choice(APELLIDOS), random.choice(APELLIDOS)
             fec_nac = datetime.now() - timedelta(days=random.randint(18*365, 30*365))
             
-            # Asignar proyecto si quedan disponibles (un estudiante puede no tener proyecto)
             id_proyecto_asignado = 'NULL'
-            if proyectos_disponibles and random.random() < 0.7: # 70% de probabilidad de tener proyecto
+            if proyectos_disponibles and random.random() < 0.7:
                 id_proyecto_asignado = proyectos_disponibles.pop()
 
-            f.write(
-                f"INSERT INTO ESTUDIANTE (numrun, dv_run, pnombre, snombre, papellido, mapellido, fec_nac, id_genero, id_proyecto) VALUES "
-                f"({numrun}, '{dv_run}', '{pnombre}', '{snombre}', '{papellido}', '{mapellido}', "
-                f"TO_DATE('{fec_nac.strftime('%Y-%m-%d')}', 'YYYY-MM-DD'), {id_genero}, {id_proyecto_asignado});\n"
-            )
+            f.write(f"INSERT INTO ESTUDIANTE (numrun, dv_run, pnombre, snombre, papellido, mapellido, fec_nac, id_genero, id_proyecto) VALUES ({numrun}, '{dv_run}', '{pnombre}', '{snombre}', '{papellido}', '{mapellido}', TO_DATE('{fec_nac.strftime('%Y-%m-%d')}', 'YYYY-MM-DD'), {id_genero}, {id_proyecto_asignado});\n")
+
+        # --- 5. Poblado de Eventos y Asignaciones ---
+        print(f"Generando {NUM_EVENTOS} eventos y sus asignaciones...")
+        f.write(f"\n-- 5. Poblado de la tabla EVENTO y sus relaciones\n")
+        
+        base_date = datetime(2025, 9, 12) # Fecha actual del contexto
+        for i in range(NUM_EVENTOS):
+            id_evento = i + 1
+            nombre_evento = random.choice(NOMBRES_EVENTOS)
+            lugar = random.choice(LUGARES_EVENTOS)
+            fecha_evento = base_date + timedelta(days=random.randint(5, 90))
+            
+            start_hour = random.randint(9, 16)
+            start_minute = random.choice([0, 30])
+            hora_inicio = f"{start_hour:02d}:{start_minute:02d}"
+            
+            end_hour = start_hour + random.randint(1, 3)
+            hora_fin = f"{end_hour:02d}:{start_minute:02d}"
+            
+            f.write(f"\n-- Evento: {nombre_evento}\n")
+            f.write(f"INSERT INTO EVENTO (id_evento, nombre, lugar, fecha, hora_inicio, hora_fin) VALUES (SEQ_EVENTO.NEXTVAL, '{nombre_evento}', '{lugar}', TO_DATE('{fecha_evento.strftime('%Y-%m-%d')}', 'YYYY-MM-DD'), '{hora_inicio}', '{hora_fin}');\n")
+            
+            # Asignar Profesores al Evento
+            profesores_a_asignar = random.sample(profesores_generados, k=random.randint(1, 2))
+            for prof in profesores_a_asignar:
+                f.write(f"INSERT INTO EVENTO_PROFESOR (id_evento, id_profesor) VALUES ({id_evento}, {prof['id']});\n")
+            
+            # Asignar Estudiantes a Cargo del Evento
+            estudiantes_a_asignar = random.sample(estudiantes_generados_ruts, k=random.randint(2, 5))
+            for rut_estudiante in estudiantes_a_asignar:
+                f.write(f"INSERT INTO EVENTO_ESTUDIANTE (id_evento, numrun_estudiante) VALUES ({id_evento}, {rut_estudiante});\n")
 
         f.write("\nCOMMIT;\n")
-        print("Archivo 'poblar_citt_oracle.sql' generado exitosamente.")
+        print("Archivo 'poblar_citt_oracle_v2.sql' generado exitosamente.")
 
 if __name__ == "__main__":
     generar_sql_oracle()
