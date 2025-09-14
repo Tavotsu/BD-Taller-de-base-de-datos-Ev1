@@ -1,15 +1,29 @@
+DROP TABLE EVENTO_ESTUDIANTE CASCADE CONSTRAINTS;
+DROP TABLE EVENTO_PROFESOR CASCADE CONSTRAINTS;
+DROP TABLE LOG_ASIGNACIONES CASCADE CONSTRAINTS;
+DROP TABLE EVENTO CASCADE CONSTRAINTS;
+DROP TABLE ESTUDIANTE CASCADE CONSTRAINTS;
+DROP TABLE PROYECTO CASCADE CONSTRAINTS;
+DROP TABLE TRACK CASCADE CONSTRAINTS;
+DROP TABLE PROFESOR CASCADE CONSTRAINTS;
+
+DROP SEQUENCE SEQ_EVENTO;
+DROP SEQUENCE SEQ_PROFESOR;
+DROP SEQUENCE SEQ_TRACK;
+DROP SEQUENCE SEQ_PROYECTO;
+
 -- TABLA DE PROFESORES
 CREATE TABLE PROFESOR (
     id_profesor NUMBER PRIMARY KEY,
-    pnombre     VARCHAR2(50),
-    papellido   VARCHAR2(50),
-    rut         NUMBER UNIQUE
+    pnombre     VARCHAR2(50) NOT NULL,
+    papellido   VARCHAR2(50) NOT NULL,
+    rut         NUMBER UNIQUE NOT NULL
 );
 
 -- TABLA DE TRACKS (CATEGORÍAS DE PROYECTOS)
 CREATE TABLE TRACK (
     id_track      NUMBER PRIMARY KEY,
-    nombre        VARCHAR2(100) UNIQUE,
+    nombre        VARCHAR2(100) UNIQUE NOT NULL,
     id_profesor   NUMBER,
     FOREIGN KEY (id_profesor) REFERENCES PROFESOR(id_profesor)
 );
@@ -17,34 +31,34 @@ CREATE TABLE TRACK (
 -- TABLA DE PROYECTOS
 CREATE TABLE PROYECTO (
     id_proyecto   NUMBER PRIMARY KEY,
-    nombre        VARCHAR2(150),
-    descripcion   VARCHAR2(500),
+    nombre        VARCHAR2(150) NOT NULL,
+    descripcion   VARCHAR2(500) NOT NULL,
     id_track      NUMBER,
     FOREIGN KEY (id_track) REFERENCES TRACK(id_track)
 );
 
 -- TABLA DE ESTUDIANTES
 CREATE TABLE ESTUDIANTE (
-    numrun      NUMBER PRIMARY KEY,
-    dv_run      CHAR(1),
-    pnombre     VARCHAR2(50),
-    snombre     VARCHAR2(50),
-    papellido   VARCHAR2(50),
-    mapellido   VARCHAR2(50),
-    fec_nac     DATE,
-    id_genero   NUMBER, -- 1: Femenino, 2: Masculino
-    id_proyecto NUMBER UNIQUE, -- Puede ser NULL
+    numrun      NUMBER PRIMARY KEY NOT NULL,
+    dv_run      CHAR(1) NOT NULL,
+    pnombre     VARCHAR2(50) NOT NULL,
+    snombre     VARCHAR2(50) NOT NULL,
+    papellido   VARCHAR2(50) NOT NULL,
+    mapellido   VARCHAR2(50) NOT NULL,
+    fec_nac     DATE NOT NULL,
+    id_genero   NUMBER NOT NULL, -- 1: Femenino, 2: Masculino
+    id_proyecto NUMBER, -- Puede ser NULL
     FOREIGN KEY (id_proyecto) REFERENCES PROYECTO(id_proyecto)
 );
 
 -- TABLA DE EVENTOS
 CREATE TABLE EVENTO (
     id_evento   NUMBER PRIMARY KEY,
-    nombre      VARCHAR2(150),
-    lugar       VARCHAR2(100),
-    fecha       DATE,
-    hora_inicio VARCHAR2(5), -- Formato HH24:MI
-    hora_fin    VARCHAR2(5)  -- Formato HH24:MI
+    nombre      VARCHAR2(150) NOT NULL,
+    lugar       VARCHAR2(100) NOT NULL,
+    fecha       DATE NOT NULL,
+    hora_inicio VARCHAR2(5) NOT NULL, -- Formato HH24:MI
+    hora_fin    VARCHAR2(5) NOT NULL  -- Formato HH24:MI
 );
 
 CREATE TABLE LOG_ASIGNACIONES (
