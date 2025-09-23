@@ -21,7 +21,7 @@ BEGIN
     -- El primer bucle recorre cada proyecto.
     FOR R_PROYECTO IN C_PROYECTOS LOOP
         
-        -- IMPRIME EL NOMBRE DEL PROYECTO (Ej: "proyecto1")
+        -- IMPRIME EL NOMBRE DEL PROYECTO (Ej: proyecto1)
         DBMS_OUTPUT.PUT_LINE(''); 
         DBMS_OUTPUT.PUT_LINE('> Proyecto: ' || R_PROYECTO.NOMBRE);
 
@@ -29,8 +29,8 @@ BEGIN
 
         -- El segundo bucle (anidado) recorre solo los estudiantes de ese proyecto.
         FOR R_ESTUDIANTE IN C_ESTUDIANTES(R_PROYECTO.ID_PROYECTO) LOOP
-            
-            -- IMPRIME CADA ESTUDIANTE CON INDENTACIÓN (Ej: "- estudiante 1")
+
+            -- IMPRIME CADA ESTUDIANTE CON INDENTACIÓN (Ej: - estudiante 1)
             DBMS_OUTPUT.PUT_LINE('  - ' || R_ESTUDIANTE.PNOMBRE || ' ' || R_ESTUDIANTE.PAPELLIDO);
             v_tiene_estudiantes := TRUE;
         END LOOP;
